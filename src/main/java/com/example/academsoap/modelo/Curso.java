@@ -1,17 +1,43 @@
 package com.example.academsoap.modelo;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import jakarta.persistence.CascadeType;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.JoinTable;
+import jakarta.persistence.ManyToMany;
+import jakarta.persistence.Table;
 import java.util.ArrayList;
 import java.util.List;
-import javax.xml.bind.annotation.XmlElement;
-import javax.xml.bind.annotation.XmlElementWrapper;
-import javax.xml.bind.annotation.XmlRootElement;
+import java.util.Objects;
 
-@XmlRootElement
+@Entity
+@Table(name = "cursos")
 public class Curso {
 
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    @Column(nullable = false, unique = true)
     private String codigo;
+
+    @Column(nullable = false)
     private String nome;
+
     private int duracao;
+
+    @ManyToMany(cascade = {CascadeType.PERSIST, CascadeType.MERGE})
+    @JsonIgnoreProperties("cursos")
+    @JoinTable(
+            name = "curso_disciplina",
+            joinColumns = @JoinColumn(name = "curso_id"),
+            inverseJoinColumns = @JoinColumn(name = "disciplina_id")
+    )
     private List<Disciplina> disciplinas = new ArrayList<>();
 
     public Curso() {
@@ -24,6 +50,14 @@ public class Curso {
         if (disciplinas != null) {
             this.disciplinas = disciplinas;
         }
+    }
+
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
     }
 
     public String getCodigo() {
@@ -50,13 +84,28 @@ public class Curso {
         this.duracao = duracao;
     }
 
-    @XmlElementWrapper(name = "disciplinas")
-    @XmlElement(name = "disciplina")
     public List<Disciplina> getDisciplinas() {
         return disciplinas;
     }
 
     public void setDisciplinas(List<Disciplina> disciplinas) {
-        this.disciplinas = disciplinas;
+        this.disciplinas = disciplinas == null ? new ArrayList<>() : disciplinas;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (!(o instanceof Curso)) {
+            return false;
+        }
+        Curso curso = (Curso) o;
+        return id != null && id.equals(curso.id);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(id);
     }
 }
